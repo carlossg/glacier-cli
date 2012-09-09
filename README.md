@@ -26,6 +26,7 @@ accessKey=…
  -queue <queue_name>   SQS queue to use for inventory retrieval. Defaults to 'glacier'
  -region <region>      Specify URL as the web service URL to use. Defaults to 'us-east-1'
  -topic <topic_name>   SNS topic to use for inventory retrieval. Defaults to 'glacier'
+ -credentialsDir <credentialsDir> Directory where the credentials for accessing AWS are saved. Defaults to '$HOME'
 ```
 
 ## Examples
