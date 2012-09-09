@@ -95,18 +95,19 @@ public class Glacier {
             return;
         }
 
-        String userHome = System.getProperty("user.home");
-        File props = new File(userHome + "/AwsCredentials.properties");
+        CommandLineParser parser = new PosixParser();
+        CommandLine cmd = parser.parse(options, args);
+        List<String> arguments = Arrays.asList(cmd.getArgs());
+               
+        String credentialsDirectory = cmd.getOptionValue("credentialsDir", System.getProperty("user.home"));       
+                
+        File props = new File(credentialsDirectory + "/AwsCredentials.properties");
         if (!props.exists()) {
             System.out.println("Missing " + props.getAbsolutePath());
             return;
         }
 
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = parser.parse(options, args);
-        List<String> arguments = Arrays.asList(cmd.getArgs());
-
-        AWSCredentials credentials = new PropertiesCredentials(new File(userHome + "/AwsCredentials.properties"));
+        AWSCredentials credentials = new PropertiesCredentials(new File(credentialsDirectory + "/AwsCredentials.properties"));
         Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
         if ("inventory".equals(arguments.get(0))) {
@@ -161,6 +162,10 @@ public class Glacier {
         Option output = OptionBuilder.withArgName("file_name").hasArg()
                 .withDescription("File to save the inventory to. Defaults to 'glacier.json'").create("output");
         options.addOption(output);
+
+        Option credentialsDir = OptionBuilder.withArgName("credentialsDir").hasArg()
+                .withDescription("Directory where the credentials for accessing AWS are saved. Defaults to '$HOME'").create("credentialsDir");
+        options.addOption(credentialsDir);
 
         return options;
     }
