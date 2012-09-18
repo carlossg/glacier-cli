@@ -110,6 +110,10 @@ public class Glacier {
         Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
         if ("inventory".equals(arguments.get(0))) {
+            if (arguments.size() != 2) {
+                printHelp(options);
+                return;
+            }
             glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
                     cmd.getOptionValue("file", "glacier.json"));
         } else if ("upload".equals(arguments.get(0))) {
