@@ -95,59 +95,60 @@ public class Glacier {
         }
 
         Options options = commonOptions();
-        if (args.length < 2) {
+
+        try {
+            if (args.length < 2) {
+                throw new GlacierCliException("Must provide at least two arguments.");
+            }
+
+            CommandLineParser parser = new PosixParser();
+            CommandLine cmd = parser.parse(options, args);
+            List<String> arguments = Arrays.asList(cmd.getArgs());
+
+            GlacierCliCommand command = GlacierCliCommand.get(arguments.get(0));
+            if (null == command) {
+                throw new GlacierCliException("Invalid command given: " + arguments.get(0));
+            }
+
+            AWSCredentials credentials = new PropertiesCredentials(props);
+            Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
+
+            switch (command) {
+                case INVENTORY:
+                    if (arguments.size() != 2) {
+                        throw new GlacierCliException("The inventory command requires exactly two parameters.");
+                    }
+                    glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
+                            cmd.getOptionValue("file", "glacier.json"));
+                    break;
+
+                case UPLOAD:
+                    if (arguments.size() < 3) {
+                        throw new GlacierCliException("The upload command requires at least three parameters.");
+                    }
+                    for (String archive : arguments.subList(2, arguments.size())) {
+                        glacier.upload(arguments.get(1), archive);
+                    }
+                    break;
+
+                case DOWNLOAD:
+                    if (arguments.size() != 4) {
+                        throw new GlacierCliException("The download command requires exactly four parameters.");
+                    }
+                    glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
+                    break;
+
+                case DELETE:
+                    if (arguments.size() != 3) {
+                        throw new GlacierCliException("The delete command requires exactly three parameters.");
+                    }
+                    glacier.delete(arguments.get(1), arguments.get(2));
+                    break;
+            }
+        } catch (GlacierCliException e) {
+            System.out.println("error: " + e.getMessage());
+            System.out.println();
             printHelp(options);
-            return;
-        }
-
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = parser.parse(options, args);
-        List<String> arguments = Arrays.asList(cmd.getArgs());
-
-        GlacierCliCommand command = GlacierCliCommand.get(arguments.get(0));
-        if (null == command) {
-            printHelp(options);
-            return;
-        }
-
-        AWSCredentials credentials = new PropertiesCredentials(props);
-        Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
-
-        switch (command) {
-            case INVENTORY:
-                if (arguments.size() != 2) {
-                    printHelp(options);
-                    return;
-                }
-                glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
-                        cmd.getOptionValue("file", "glacier.json"));
-                break;
-
-            case UPLOAD:
-                if (arguments.size() < 3) {
-                    printHelp(options);
-                    return;
-                }
-                for (String archive : arguments.subList(2, arguments.size())) {
-                    glacier.upload(arguments.get(1), archive);
-                }
-                break;
-
-            case DOWNLOAD:
-                if (arguments.size() != 4) {
-                    printHelp(options);
-                    return;
-                }
-                glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
-                break;
-
-            case DELETE:
-                if (arguments.size() != 3) {
-                    printHelp(options);
-                    return;
-                }
-                glacier.delete(arguments.get(1), arguments.get(2));
-                break;
         }
     }
 
