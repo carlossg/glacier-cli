@@ -88,17 +88,16 @@ public class Glacier {
     }
 
     public static void main(String[] args) throws Exception {
-
-        Options options = commonOptions();
-        if (args.length < 2) {
-            printHelp(options);
-            return;
-        }
-
         String userHome = System.getProperty("user.home");
         File props = new File(userHome + "/AwsCredentials.properties");
         if (!props.exists()) {
             System.out.println("Missing " + props.getAbsolutePath());
+            return;
+        }
+
+        Options options = commonOptions();
+        if (args.length < 2) {
+            printHelp(options);
             return;
         }
 
