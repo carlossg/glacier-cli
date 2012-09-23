@@ -95,8 +95,7 @@ public class Glacier {
             return;
         }
 
-        String userHome = System.getProperty("user.home");
-        File props = new File(userHome + "/AwsCredentials.properties");
+        File props = new File(System.getProperty("user.home") + "/AwsCredentials.properties");
         if (!props.exists()) {
             System.out.println("Missing " + props.getAbsolutePath());
             return;
@@ -106,7 +105,7 @@ public class Glacier {
         CommandLine cmd = parser.parse(options, args);
         List<String> arguments = Arrays.asList(cmd.getArgs());
 
-        AWSCredentials credentials = new PropertiesCredentials(new File(userHome + "/AwsCredentials.properties"));
+        AWSCredentials credentials = new PropertiesCredentials(props);
         Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
         if ("inventory".equals(arguments.get(0))) {
