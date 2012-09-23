@@ -105,38 +105,50 @@ public class Glacier {
         CommandLine cmd = parser.parse(options, args);
         List<String> arguments = Arrays.asList(cmd.getArgs());
 
+        GlacierCliCommand command = GlacierCliCommand.get(arguments.get(0));
+        if (null == command) {
+            printHelp(options);
+            return;
+        }
+
         AWSCredentials credentials = new PropertiesCredentials(new File(userHome + "/AwsCredentials.properties"));
         Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
-        if ("inventory".equals(arguments.get(0))) {
-            if (arguments.size() != 2) {
-                printHelp(options);
-                return;
-            }
-            glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
-                    cmd.getOptionValue("file", "glacier.json"));
-        } else if ("upload".equals(arguments.get(0))) {
-            if (arguments.size() < 3) {
-                printHelp(options);
-                return;
-            }
-            for (String archive : arguments.subList(2, arguments.size())) {
-                glacier.upload(arguments.get(1), archive);
-            }
-        } else if ("download".equals(arguments.get(0))) {
-            if (arguments.size() != 4) {
-                printHelp(options);
-                return;
-            }
-            glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
-        } else if ("delete".equals(arguments.get(0))) {
-            if (arguments.size() != 3) {
-                printHelp(options);
-                return;
-            }
-            glacier.delete(arguments.get(1), arguments.get(2));
-        } else {
-            printHelp(options);
+        switch (command) {
+            case INVENTORY:
+                if (arguments.size() != 2) {
+                    printHelp(options);
+                    return;
+                }
+                glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
+                        cmd.getOptionValue("file", "glacier.json"));
+                break;
+
+            case UPLOAD:
+                if (arguments.size() < 3) {
+                    printHelp(options);
+                    return;
+                }
+                for (String archive : arguments.subList(2, arguments.size())) {
+                    glacier.upload(arguments.get(1), archive);
+                }
+                break;
+
+            case DOWNLOAD:
+                if (arguments.size() != 4) {
+                    printHelp(options);
+                    return;
+                }
+                glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
+                break;
+
+            case DELETE:
+                if (arguments.size() != 3) {
+                    printHelp(options);
+                    return;
+                }
+                glacier.delete(arguments.get(1), arguments.get(2));
+                break;
         }
     }
 
