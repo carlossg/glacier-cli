@@ -118,8 +118,8 @@ public class Glacier {
                     if (arguments.size() != 2) {
                         throw new GlacierCliException("The inventory command requires exactly two parameters.");
                     }
-                    glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"), cmd.getOptionValue("queue", "glacier"),
-                            cmd.getOptionValue("file", "glacier.json"));
+                    glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"),
+                            cmd.getOptionValue("queue", "glacier"), cmd.getOptionValue("file", "glacier.json"));
                     break;
 
                 case UPLOAD:
@@ -148,14 +148,13 @@ public class Glacier {
         } catch (GlacierCliException e) {
             System.out.println("error: " + e.getMessage());
             System.out.println();
-            printHelp(options);
-        }
-    }
 
-    private static void printHelp(Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("glacier " + "upload vault_name file1 file2 ... | " + "download vault_name archiveId output_file | "
-                + "delete vault_name archiveId | " + "inventory vault_name | ", options);
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("glacier " + "upload vault_name file1 file2 ... | "
+                                           + "download vault_name archiveId output_file | "
+                                           + "delete vault_name archiveId | "
+                                           + "inventory vault_name | ", options);
+        }
     }
 
     @SuppressWarnings("static-access")
