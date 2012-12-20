@@ -146,7 +146,7 @@ public class Glacier {
                     break;
             }
         } catch (GlacierCliException e) {
-            System.out.println("error: " + e.getMessage());
+            System.out.println(e.getClass() + ": " + e.getMessage());
             System.out.println();
 
             HelpFormatter formatter = new HelpFormatter();
@@ -154,6 +154,8 @@ public class Glacier {
                                            + "download vault_name archiveId output_file | "
                                            + "delete vault_name archiveId | "
                                            + "inventory vault_name | ", options);
+        } catch (Exception e) {
+            System.out.println(e.getClass() + ": " + e.getMessage());
         }
     }
 
