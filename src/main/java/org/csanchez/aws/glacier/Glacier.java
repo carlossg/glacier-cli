@@ -135,14 +135,14 @@ public class Glacier {
                     if (arguments.size() != 4) {
                         throw new GlacierCliException("The download command requires exactly four parameters.");
                     }
-                    glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
+                    glacier.download(arguments.get(1), arguments.get(2).replace("\\", ""), arguments.get(3));
                     break;
 
                 case DELETE:
                     if (arguments.size() != 3) {
                         throw new GlacierCliException("The delete command requires exactly three parameters.");
                     }
-                    glacier.delete(arguments.get(1), arguments.get(2));
+                    glacier.delete(arguments.get(1), arguments.get(2).replace("\\", ""));
                     break;
             }
         } catch (GlacierCliException e) {
