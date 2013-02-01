@@ -196,8 +196,13 @@ public class Glacier {
         String msg = "Downloading " + archiveId + " from Glacier vault " + vaultName;
         System.out.println(msg);
 
+        sqsClient = new AmazonSQSClient(credentials);
+        sqsClient.setEndpoint("https://sqs." + region + ".amazonaws.com");
+        snsClient = new AmazonSNSClient(credentials);
+        snsClient.setEndpoint("https://sns." + region + ".amazonaws.com");
+
         try {
-            ArchiveTransferManager atm = new ArchiveTransferManager(client, credentials);
+            ArchiveTransferManager atm = new ArchiveTransferManager(client, sqsClient,snsClient);
             atm.download(vaultName, archiveId, new File(downloadFilePath));
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
