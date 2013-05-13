@@ -18,6 +18,10 @@ accessKey=…
 * `download vault_name archiveId output_file`
 * `delete vault_name archiveId`
 * `inventory vault_name`
+* `list`
+* `info vault_name`
+* `remove vault_name`
+
 
 ## Command line options
 
@@ -49,6 +53,19 @@ Get the inventory for vault `pictures` (takes >4 hours)
 Upload file1 and file2 to vault `pictures` in Europe region
 
 `java -jar glacier-1.0-jar-with-dependencies.jar -region eu-west-1 upload pictures file1 file2`
+
+Remove vault in Europe region
+
+`java -jar glacier-1.0-jar-with-dependencies.jar -region eu-west-1 remove mypreciousvault`
+
+List vaults
+
+`java -jar glacier-1.0-jar-with-dependencies.jar list`
+
+get vault info
+
+`java -jar glacier-1.0-jar-with-dependencies.jar info pictures`
+
 
 
 

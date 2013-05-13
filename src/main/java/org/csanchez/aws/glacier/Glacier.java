@@ -40,6 +40,12 @@ import com.amazonaws.services.glacier.model.GetJobOutputResult;
 import com.amazonaws.services.glacier.model.InitiateJobRequest;
 import com.amazonaws.services.glacier.model.InitiateJobResult;
 import com.amazonaws.services.glacier.model.JobParameters;
+import com.amazonaws.services.glacier.model.DeleteVaultRequest;
+import com.amazonaws.services.glacier.model.DescribeVaultRequest;
+import com.amazonaws.services.glacier.model.DescribeVaultResult;
+import com.amazonaws.services.glacier.model.ListVaultsRequest;
+import com.amazonaws.services.glacier.model.ListVaultsResult;
+import com.amazonaws.services.glacier.model.DescribeVaultOutput;
 import com.amazonaws.services.glacier.transfer.ArchiveTransferManager;
 import com.amazonaws.services.glacier.transfer.UploadResult;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -97,13 +103,17 @@ public class Glacier {
         Options options = commonOptions();
 
         try {
-            if (args.length < 2) {
-                throw new GlacierCliException("Must provide at least two arguments.");
+            if (args.length < 1) {
+                throw new GlacierCliException("Must provide at least one arguments.");
             }
 
             CommandLineParser parser = new PosixParser();
             CommandLine cmd = parser.parse(options, args);
             List<String> arguments = Arrays.asList(cmd.getArgs());
+
+            if (arguments.isEmpty ()) {
+                throw new GlacierCliException("Must provide at least one command.");
+            }
 
             GlacierCliCommand command = GlacierCliCommand.get(arguments.get(0));
             if (null == command) {
@@ -144,6 +154,25 @@ public class Glacier {
                     }
                     glacier.delete(arguments.get(1), arguments.get(2));
                     break;
+                case REMOVE:
+                    if (arguments.size() != 2) {
+                        throw new GlacierCliException("The remove command requires exactly two parameters.");
+                    }
+                    glacier.remove(arguments.get(1));
+                    break;
+
+                case INFO:
+                    if (arguments.size() != 2) {
+                        throw new GlacierCliException("The info command requires exactly two parameters.");
+                    }
+                    glacier.info(arguments.get(1));
+                    break;
+
+                case LIST:
+                    glacier.list();
+                    break;
+
+
             }
         } catch (GlacierCliException e) {
             System.out.println("error: " + e.getMessage());
@@ -153,6 +182,9 @@ public class Glacier {
             formatter.printHelp("glacier " + "upload vault_name file1 file2 ... | "
                                            + "download vault_name archiveId output_file | "
                                            + "delete vault_name archiveId | "
+                                           + "remove vault_name |"
+                                           + "list vault_name |"
+                                           + "info vault_name |"
                                            + "inventory vault_name", options);
         }
     }
@@ -252,6 +284,59 @@ public class Glacier {
             System.err.println(e);
         }
     }
+
+    public void remove (String vaultName) {
+        String msg = "Deleting vault " + vaultName;
+        System.out.println(msg);
+
+        try {
+            client.deleteVault (new DeleteVaultRequest(vaultName));
+            System.out.println("Deleted vault: " + vaultName);
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
+    public void list () {
+        String msg = "Listing ...";
+        System.out.println (msg);
+
+        try {
+            ListVaultsResult vaults = client.listVaults (new ListVaultsRequest ());
+
+            for (DescribeVaultOutput vault: vaults.getVaultList())
+            {
+                System.out.println ("----");
+                System.out.println ("Vault : " + vault.getVaultName()
+                            + "\n\tCreation date : " + vault.getCreationDate ()
+                            + "\n\tNumber of archives : " + vault.getNumberOfArchives ()
+                            + "\n\tVault size : " + vault.getSizeInBytes ()
+                            + "\n\tLast inventory date : " + vault.getLastInventoryDate ());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
+    public void info (String vaultName) {
+        String msg = "Info " + vaultName +"...";
+        System.out.println (msg);
+
+        try {
+            DescribeVaultResult vaultdescribe = client.describeVault (new DescribeVaultRequest (vaultName));
+            System.out.println ("Vault : " + vaultName
+                            + "\n\tCreation date : " + vaultdescribe.getCreationDate ()
+                            + "\n\tNumber of archives : " + vaultdescribe.getNumberOfArchives ()
+                            + "\n\tVault size : " + vaultdescribe.getSizeInBytes ()
+                            + "\n\tLast inventory date : " + vaultdescribe.getLastInventoryDate ());
+
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
 
     private QueueConfig setupSQS(String sqsQueueName) {
         QueueConfig config = new QueueConfig();
