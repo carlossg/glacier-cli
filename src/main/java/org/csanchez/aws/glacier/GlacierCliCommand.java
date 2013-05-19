@@ -12,7 +12,10 @@ public enum GlacierCliCommand {
     INVENTORY("inventory"),
     UPLOAD("upload"),
     DOWNLOAD("download"),
-    DELETE("delete");
+    DELETE("delete"),
+    LIST("list"),
+    INFO("info"),
+    REMOVE("remove");
 
     private static final Map<String, GlacierCliCommand> lookup
             = new HashMap<String, GlacierCliCommand>();
