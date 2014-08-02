@@ -97,7 +97,7 @@ public class Glacier {
         File props = new File(System.getProperty("user.home") + "/AwsCredentials.properties");
         if (!props.exists()) {
             System.out.println("Missing " + props.getAbsolutePath());
-            return;
+            System.exit(1);
         }
 
         Options options = commonOptions();
@@ -186,6 +186,7 @@ public class Glacier {
                                            + "list vault_name |"
                                            + "info vault_name |"
                                            + "inventory vault_name", options);
+            System.exit(1);
         }
     }
 
