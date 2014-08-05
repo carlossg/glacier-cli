@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -96,7 +97,7 @@ public class Glacier {
     public static void main(String[] args) throws Exception {
         File props = new File(System.getProperty("user.home") + "/AwsCredentials.properties");
         if (!props.exists()) {
-            System.out.println("Missing " + props.getAbsolutePath());
+            System.err.println("Missing " + props.getAbsolutePath());
             System.exit(1);
         }
 
@@ -175,17 +176,26 @@ public class Glacier {
 
             }
         } catch (GlacierCliException e) {
-            System.out.println("error: " + e.getMessage());
-            System.out.println();
+            System.err.println("error: " + e.getMessage());
+            System.err.println();
 
+            PrintWriter out = new PrintWriter(System.err);
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("glacier " + "upload vault_name file1 file2 ... | "
+            formatter.printHelp(out,
+                                formatter.getWidth(),
+                                "glacier " + "upload vault_name file1 file2 ... | "
                                            + "download vault_name archiveId output_file | "
                                            + "delete vault_name archiveId | "
-                                           + "remove vault_name |"
-                                           + "list vault_name |"
-                                           + "info vault_name |"
-                                           + "inventory vault_name", options);
+                                           + "remove vault_name | "
+                                           + "list vault_name | "
+                                           + "info vault_name | "
+                                           + "inventory vault_name",
+                                null,
+                                options,
+                                formatter.getLeftPadding(),
+                                formatter.getDescPadding(),
+                                null);
+            out.flush();
             System.exit(1);
         }
     }
