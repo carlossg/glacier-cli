@@ -118,7 +118,9 @@ public class Glacier {
                 throw new GlacierCliException("Invalid command given: " + arguments.get(0));
             }
 
-            File props = new File(System.getProperty("user.home") + "/AwsCredentials.properties");
+            String defaultPropertiesPath = System.getProperty("user.home") + "/AwsCredentials.properties";
+            String propertiesPath = cmd.getOptionValue("properties", defaultPropertiesPath);
+            File props = new File(propertiesPath);
             AWSCredentials credentials = new PropertiesCredentials(props);
             Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
@@ -205,6 +207,10 @@ public class Glacier {
 
     private static Options commonOptions() {
         Options options = new Options();
+
+        Option properties = OptionBuilder.withArgName("properties").hasArg()
+                .withDescription("Path to an AWSCredentials properties file. Defaults to '~/AwsCredentials.properties'").create("properties");
+        options.addOption(properties);
 
         Option region = OptionBuilder.withArgName("region").hasArg()
                 .withDescription("Specify URL as the web service URL to use. Defaults to 'us-east-1'").create("region");
