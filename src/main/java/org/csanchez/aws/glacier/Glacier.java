@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -85,6 +87,7 @@ public class Glacier {
 
     private AWSCredentials credentials;
     private String region;
+    private static Options options;
 
     public Glacier(AWSCredentials credentials, String region) {
         this.credentials = credentials;
@@ -94,32 +97,30 @@ public class Glacier {
     }
 
     public static void main(String[] args) throws Exception {
-        File props = new File(System.getProperty("user.home") + "/AwsCredentials.properties");
-        if (!props.exists()) {
-            System.out.println("Missing " + props.getAbsolutePath());
-            System.exit(1);
-        }
-
-        Options options = commonOptions();
+        options = commonOptions();
 
         try {
-            if (args.length < 1) {
-                throw new GlacierCliException("Must provide at least one arguments.");
-            }
-
             CommandLineParser parser = new PosixParser();
             CommandLine cmd = parser.parse(options, args);
             List<String> arguments = Arrays.asList(cmd.getArgs());
+
+            if (cmd.hasOption("help")) {
+                usage();
+                // Not reached
+            }
 
             if (arguments.isEmpty ()) {
                 throw new GlacierCliException("Must provide at least one command.");
             }
 
             GlacierCliCommand command = GlacierCliCommand.get(arguments.get(0));
-            if (null == command) {
+            if (command == null) {
                 throw new GlacierCliException("Invalid command given: " + arguments.get(0));
             }
 
+            String defaultPropertiesPath = System.getProperty("user.home") + "/AwsCredentials.properties";
+            String propertiesPath = cmd.getOptionValue("properties", defaultPropertiesPath);
+            File props = new File(propertiesPath);
             AWSCredentials credentials = new PropertiesCredentials(props);
             Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
@@ -171,28 +172,46 @@ public class Glacier {
                 case LIST:
                     glacier.list();
                     break;
-
-
             }
         } catch (GlacierCliException e) {
-            System.out.println("error: " + e.getMessage());
-            System.out.println();
+            System.err.println("error: " + e.getMessage());
+            System.err.println();
 
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("glacier " + "upload vault_name file1 file2 ... | "
-                                           + "download vault_name archiveId output_file | "
-                                           + "delete vault_name archiveId | "
-                                           + "remove vault_name |"
-                                           + "list vault_name |"
-                                           + "info vault_name |"
-                                           + "inventory vault_name", options);
-            System.exit(1);
+            usage();
+        } catch (UnrecognizedOptionException e) {
+            System.err.println("error: Invalid argument: " + e.getOption());
+            usage();
         }
     }
 
-    @SuppressWarnings("static-access")
+    private static void usage() {
+        PrintWriter out = new PrintWriter(System.err);
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp(out,
+                            formatter.getWidth(),
+                            "glacier " + "upload vault_name file1 file2 ... | "
+                                       + "download vault_name archiveId output_file | "
+                                       + "delete vault_name archiveId | "
+                                       + "remove vault_name | "
+                                       + "list vault_name | "
+                                       + "info vault_name | "
+                                       + "inventory vault_name",
+                            null,
+                            options,
+                            formatter.getLeftPadding(),
+                            formatter.getDescPadding(),
+                            null);
+        out.flush();
+        System.exit(1);
+    }
+
     private static Options commonOptions() {
         Options options = new Options();
+
+        Option properties = OptionBuilder.withArgName("properties").hasArg()
+                .withDescription("Path to an AWSCredentials properties file. Defaults to '~/AwsCredentials.properties'").create("properties");
+        options.addOption(properties);
+
         Option region = OptionBuilder.withArgName("region").hasArg()
                 .withDescription("Specify URL as the web service URL to use. Defaults to 'us-east-1'").create("region");
         options.addOption(region);
@@ -208,6 +227,10 @@ public class Glacier {
         Option output = OptionBuilder.withArgName("file_name").hasArg()
                 .withDescription("File to save the inventory to. Defaults to 'glacier.json'").create("output");
         options.addOption(output);
+
+        Option help = OptionBuilder.withArgName("help")
+                .withDescription("Show help information").create("help");
+        options.addOption(help);
 
         return options;
     }
