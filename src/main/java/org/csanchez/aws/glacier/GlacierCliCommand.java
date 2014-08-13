@@ -15,7 +15,8 @@ public enum GlacierCliCommand {
     DELETE("delete"),
     LIST("list"),
     INFO("info"),
-    REMOVE("remove");
+    DELETE_VAULT("delete-vault"),
+    CREATE_VAULT("create-vault");
 
     private static final Map<String, GlacierCliCommand> lookup
             = new HashMap<String, GlacierCliCommand>();

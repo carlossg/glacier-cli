@@ -36,6 +36,7 @@ import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.Statement.Effect;
 import com.amazonaws.auth.policy.actions.SQSActions;
 import com.amazonaws.services.glacier.AmazonGlacierClient;
+import com.amazonaws.services.glacier.model.CreateVaultRequest;
 import com.amazonaws.services.glacier.model.DeleteArchiveRequest;
 import com.amazonaws.services.glacier.model.GetJobOutputRequest;
 import com.amazonaws.services.glacier.model.GetJobOutputResult;
@@ -125,6 +126,7 @@ public class Glacier {
             Glacier glacier = new Glacier(credentials, cmd.getOptionValue("region", "us-east-1"));
 
             switch (command) {
+
                 case INVENTORY:
                     if (arguments.size() != 2) {
                         throw new GlacierCliException("The inventory command requires exactly two parameters.");
@@ -155,11 +157,11 @@ public class Glacier {
                     }
                     glacier.delete(arguments.get(1), arguments.get(2));
                     break;
-                case REMOVE:
+                case DELETE_VAULT:
                     if (arguments.size() != 2) {
-                        throw new GlacierCliException("The remove command requires exactly two parameters.");
+                        throw new GlacierCliException("The delete-vault command requires exactly two parameters.");
                     }
-                    glacier.remove(arguments.get(1));
+                    glacier.deleteVault(arguments.get(1));
                     break;
 
                 case INFO:
@@ -171,6 +173,13 @@ public class Glacier {
 
                 case LIST:
                     glacier.list();
+                    break;
+
+                case CREATE_VAULT:
+                    if (arguments.size() != 1) {
+                        throw new GlacierCliException("The create-vault command requires exactly one parameter.");
+                    }
+                    glacier.createVault(arguments.get(1));
                     break;
             }
         } catch (GlacierCliException e) {
@@ -192,10 +201,11 @@ public class Glacier {
                             "glacier " + "upload vault_name file1 file2 ... | "
                                        + "download vault_name archiveId output_file | "
                                        + "delete vault_name archiveId | "
-                                       + "remove vault_name | "
+                                       + "delete-vault vault_name | "
                                        + "list vault_name | "
                                        + "info vault_name | "
-                                       + "inventory vault_name",
+                                       + "inventory vault_name | "
+                                       + "create-vault vault_name",
                             null,
                             options,
                             formatter.getLeftPadding(),
@@ -309,7 +319,7 @@ public class Glacier {
         }
     }
 
-    public void remove (String vaultName) {
+    public void deleteVault (String vaultName) {
         String msg = "Deleting vault " + vaultName;
         System.out.println(msg);
 
@@ -338,6 +348,18 @@ public class Glacier {
                             + "\n\tLast inventory date : " + vault.getLastInventoryDate ());
             }
 
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
+    public void createVault(String vaultName) {
+        String msg = "Creating vault \"" + vaultName + "\" ...";
+        System.out.println(msg);
+
+        try {
+            client.createVault(new CreateVaultRequest(vaultName));
+            System.out.println("Created vault: \"" + vaultName+ "\"");
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
         }
