@@ -130,7 +130,7 @@ public class Glacier {
                         throw new GlacierCliException("The inventory command requires exactly two parameters.");
                     }
                     glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"),
-                            cmd.getOptionValue("queue", "glacier"), cmd.getOptionValue("file", "glacier.json"));
+                            cmd.getOptionValue("queue", "glacier"), cmd.getOptionValue("output", "glacier.json"));
                     break;
 
                 case UPLOAD:
