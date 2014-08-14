@@ -2,6 +2,7 @@
 
 A command line client to [Amazon Glacier](http://aws.amazon.com/glacier) based on AWS examples.
 
+
 ## Configuration
 
 Create `$HOME/AwsCredentials.properties` with your AWS keys
@@ -12,15 +13,22 @@ accessKey=…
 
 ```
 
+
 ## Commands
 
+### Work with archives
+
 * `upload vault_name file1 file2 …`
-* `download vault_name archiveId output_file`
 * `delete vault_name archiveId`
+* `download vault_name archiveId output_file`
+
+### Work with vaults
+
+* `create-vault vault_name`
+* `delete-vault vault_name`
 * `inventory vault_name`
-* `list`
 * `info vault_name`
-* `remove vault_name`
+* `list`
 
 
 ## Command line options
@@ -36,44 +44,40 @@ accessKey=…
 
 ## Examples
 
-Upload file1 and file2 to vault `pictures`
+### Work with archives
 
+#### Upload file1 and file2 to vault `pictures`
 `java -jar glacier-1.0-jar-with-dependencies.jar upload pictures file1 file2`
 
-Download archive with id xxx from vault `pictures` to file `pic.tar` (takes >4 hours)
-
-`java -jar glacier-1.0-jar-with-dependencies.jar download pictures xxx pic.tar`
-
-Delete archive with id xxx from vault `pictures`
-
+#### Delete archive with id xxx from vault `pictures`
 `java -jar glacier-1.0-jar-with-dependencies.jar delete pictures xxx`
 
-Get the inventory for vault `pictures` (takes >4 hours)
+#### Download archive with id xxx from vault `pictures` to file `pic.tar` (takes >4 hours)
+`java -jar glacier-1.0-jar-with-dependencies.jar download pictures xxx pic.tar`
 
+
+### Work with vaults
+
+### Create vault
+`java -jar glacier-1.0-jar-with-dependencies.jar create-vault avault`
+
+#### Delete vault in Europe region
+`java -jar glacier-1.0-jar-with-dependencies.jar -region eu-west-1 delete-vault mypreciousvault`
+
+#### Get the inventory for vault `pictures` (takes >4 hours)
 `java -jar glacier-1.0-jar-with-dependencies.jar inventory pictures`
 
-Upload file1 and file2 to vault `pictures` in Europe region
-
-`java -jar glacier-1.0-jar-with-dependencies.jar -region eu-west-1 upload pictures file1 file2`
-
-Remove vault in Europe region
-
-`java -jar glacier-1.0-jar-with-dependencies.jar -region eu-west-1 remove mypreciousvault`
-
-List vaults
-
-`java -jar glacier-1.0-jar-with-dependencies.jar list`
-
-get vault info
-
+#### Get vault info
 `java -jar glacier-1.0-jar-with-dependencies.jar info pictures`
 
-
+#### List vaults
+`java -jar glacier-1.0-jar-with-dependencies.jar list`
 
 
 ## Building
 
 `mvn clean package`
+
 
 ## More info
 
@@ -81,8 +85,8 @@ Uses Glacier high level API for uploading, downloading, deleting files, and the 
 
 More info at the [AWS Glacier development docs](http://docs.amazonwebservices.com/amazonglacier/latest/dev/).
 
-License
--------
+
+## License
 ```
   Copyright 2012 Carlos Sanchez
 
@@ -98,4 +102,3 @@ License
   See the License for the specific language governing permissions and
   limitations under the License.
 ```
-
