@@ -151,7 +151,6 @@ public class Glacier {
                     glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
                     break;
 
-
                 // Vault commands
                 case CREATE_VAULT:
                     if (arguments.size() != 1) {
@@ -288,7 +287,7 @@ public class Glacier {
         snsClient.setEndpoint("https://sns." + region + ".amazonaws.com");
 
         try {
-            ArchiveTransferManager atm = new ArchiveTransferManager(client, sqsClient,snsClient);
+            ArchiveTransferManager atm = new ArchiveTransferManager(client, sqsClient, snsClient);
             atm.download(vaultName, archiveId, new File(downloadFilePath));
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
@@ -316,7 +315,7 @@ public class Glacier {
         System.out.println(msg);
 
         try {
-            client.deleteVault (new DeleteVaultRequest(vaultName));
+            client.deleteVault(new DeleteVaultRequest(vaultName));
             System.out.println("Deleted vault: " + vaultName);
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
@@ -355,37 +354,37 @@ public class Glacier {
         }
     }
 
-    public void info (String vaultName) {
-        String msg = "Info " + vaultName +"...";
-        System.out.println (msg);
+    public void info(String vaultName) {
+        String msg = "Info " + vaultName + "...";
+        System.out.println(msg);
 
         try {
-            DescribeVaultResult vaultdescribe = client.describeVault (new DescribeVaultRequest (vaultName));
+            DescribeVaultResult vaultdescribe = client.describeVault(new DescribeVaultRequest(vaultName));
             System.out.println ("Vault : " + vaultName
-                            + "\n\tCreation date : " + vaultdescribe.getCreationDate ()
-                            + "\n\tNumber of archives : " + vaultdescribe.getNumberOfArchives ()
-                            + "\n\tVault size : " + vaultdescribe.getSizeInBytes ()
-                            + "\n\tLast inventory date : " + vaultdescribe.getLastInventoryDate ());
+                            + "\n\tCreation date : " + vaultdescribe.getCreationDate()
+                            + "\n\tNumber of archives : " + vaultdescribe.getNumberOfArchives()
+                            + "\n\tVault size : " + vaultdescribe.getSizeInBytes()
+                            + "\n\tLast inventory date : " + vaultdescribe.getLastInventoryDate());
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
         }
     }
 
-    public void list () {
+    public void list() {
         String msg = "Listing ...";
-        System.out.println (msg);
+        System.out.println(msg);
 
         try {
-            ListVaultsResult vaults = client.listVaults (new ListVaultsRequest ());
+            ListVaultsResult vaults = client.listVaults(new ListVaultsRequest());
 
             for (DescribeVaultOutput vault: vaults.getVaultList())
             {
-                System.out.println ("----");
-                System.out.println ("Vault : " + vault.getVaultName()
-                            + "\n\tCreation date : " + vault.getCreationDate ()
-                            + "\n\tNumber of archives : " + vault.getNumberOfArchives ()
-                            + "\n\tVault size : " + vault.getSizeInBytes ()
-                            + "\n\tLast inventory date : " + vault.getLastInventoryDate ());
+                System.out.println("----");
+                System.out.println("Vault : " + vault.getVaultName()
+                            + "\n\tCreation date : " + vault.getCreationDate()
+                            + "\n\tNumber of archives : " + vault.getNumberOfArchives()
+                            + "\n\tVault size : " + vault.getSizeInBytes()
+                            + "\n\tLast inventory date : " + vault.getLastInventoryDate());
             }
 
         } catch (Exception e) {
@@ -414,6 +413,7 @@ public class Glacier {
         Map<String, String> queueAttributes = new HashMap<String, String>();
         queueAttributes.put("Policy", sqsPolicy.toJson());
         sqsClient.setQueueAttributes(new SetQueueAttributesRequest(config.sqsQueueURL, queueAttributes));
+
         return config;
     }
 
@@ -427,11 +427,11 @@ public class Glacier {
         SubscribeResult result2 = snsClient.subscribe(request2);
 
         config.snsSubscriptionARN = result2.getSubscriptionArn();
+
         return config;
     }
 
     private String initiateJobRequest(String vaultName, String snsTopicARN) {
-
         JobParameters jobParameters = new JobParameters().withType("inventory-retrieval").withSNSTopic(snsTopicARN);
 
         InitiateJobRequest request = new InitiateJobRequest().withVaultName(vaultName).withJobParameters(jobParameters);
@@ -442,7 +442,6 @@ public class Glacier {
     }
 
     private Boolean waitForJobToComplete(String jobId, String sqsQueueUrl) throws InterruptedException, JsonParseException, IOException {
-
         Boolean messageFound = false;
         Boolean jobSuccessful = false;
         ObjectMapper mapper = new ObjectMapper();
@@ -480,7 +479,6 @@ public class Glacier {
     }
 
     private void downloadJobOutput(String vaultName, String jobId, String fileName) throws IOException {
-
         GetJobOutputRequest getJobOutputRequest = new GetJobOutputRequest().withVaultName(vaultName).withJobId(jobId);
         GetJobOutputResult getJobOutputResult = client.getJobOutput(getJobOutputRequest);
 
