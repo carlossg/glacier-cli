@@ -127,14 +127,7 @@ public class Glacier {
 
             switch (command) {
 
-                case INVENTORY:
-                    if (arguments.size() != 2) {
-                        throw new GlacierCliException("The inventory command requires exactly two parameters.");
-                    }
-                    glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"),
-                            cmd.getOptionValue("queue", "glacier"), cmd.getOptionValue("file", "glacier.json"));
-                    break;
-
+                // Archive commands
                 case UPLOAD:
                     if (arguments.size() < 3) {
                         throw new GlacierCliException("The upload command requires at least three parameters.");
@@ -144,6 +137,13 @@ public class Glacier {
                     }
                     break;
 
+                case DELETE:
+                    if (arguments.size() != 3) {
+                        throw new GlacierCliException("The delete command requires exactly three parameters.");
+                    }
+                    glacier.delete(arguments.get(1), arguments.get(2));
+                    break;
+
                 case DOWNLOAD:
                     if (arguments.size() != 4) {
                         throw new GlacierCliException("The download command requires exactly four parameters.");
@@ -151,17 +151,28 @@ public class Glacier {
                     glacier.download(arguments.get(1), arguments.get(2), arguments.get(3));
                     break;
 
-                case DELETE:
-                    if (arguments.size() != 3) {
-                        throw new GlacierCliException("The delete command requires exactly three parameters.");
+
+                // Vault commands
+                case CREATE_VAULT:
+                    if (arguments.size() != 1) {
+                        throw new GlacierCliException("The create-vault command requires exactly one parameter.");
                     }
-                    glacier.delete(arguments.get(1), arguments.get(2));
+                    glacier.createVault(arguments.get(1));
                     break;
+
                 case DELETE_VAULT:
                     if (arguments.size() != 2) {
                         throw new GlacierCliException("The delete-vault command requires exactly two parameters.");
                     }
                     glacier.deleteVault(arguments.get(1));
+                    break;
+
+                case INVENTORY:
+                    if (arguments.size() != 2) {
+                        throw new GlacierCliException("The inventory command requires exactly two parameters.");
+                    }
+                    glacier.inventory(arguments.get(1), cmd.getOptionValue("topic", "glacier"),
+                            cmd.getOptionValue("queue", "glacier"), cmd.getOptionValue("file", "glacier.json"));
                     break;
 
                 case INFO:
@@ -173,13 +184,6 @@ public class Glacier {
 
                 case LIST:
                     glacier.list();
-                    break;
-
-                case CREATE_VAULT:
-                    if (arguments.size() != 1) {
-                        throw new GlacierCliException("The create-vault command requires exactly one parameter.");
-                    }
-                    glacier.createVault(arguments.get(1));
                     break;
             }
         } catch (GlacierCliException e) {
@@ -199,13 +203,13 @@ public class Glacier {
         formatter.printHelp(out,
                             formatter.getWidth(),
                             "glacier " + "upload vault_name file1 file2 ... | "
-                                       + "download vault_name archiveId output_file | "
                                        + "delete vault_name archiveId | "
+                                       + "download vault_name archiveId output_file | "
+                                       + "create-vault vault_name"
                                        + "delete-vault vault_name | "
-                                       + "list vault_name | "
-                                       + "info vault_name | "
                                        + "inventory vault_name | "
-                                       + "create-vault vault_name",
+                                       + "list vault_name | "
+                                       + "info vault_name | ",
                             null,
                             options,
                             formatter.getLeftPadding(),
@@ -245,6 +249,10 @@ public class Glacier {
         return options;
     }
 
+    // ================
+    // Archive commands
+    // ================
+
     public void upload(String vaultName, String archive) {
         String msg = "Uploading " + archive + " to Glacier vault " + vaultName;
         System.out.println(msg);
@@ -253,6 +261,18 @@ public class Glacier {
             ArchiveTransferManager atm = new ArchiveTransferManager(client, credentials);
             UploadResult result = atm.upload(vaultName, archive, new File(archive));
             System.out.println("Uploaded " + archive + ": " + result.getArchiveId());
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
+    public void delete(String vaultName, String archiveId) {
+        String msg = "Deleting " + archiveId + " from Glacier vault " + vaultName;
+        System.out.println(msg);
+
+        try {
+            client.deleteArchive(new DeleteArchiveRequest().withVaultName(vaultName).withArchiveId(archiveId));
+            System.out.println("Deleted archive: " + archiveId);
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
         }
@@ -275,13 +295,29 @@ public class Glacier {
         }
     }
 
-    public void delete(String vaultName, String archiveId) {
-        String msg = "Deleting " + archiveId + " from Glacier vault " + vaultName;
+    // ==============
+    // Vault commands
+    // ==============
+
+    public void createVault(String vaultName) {
+        String msg = "Creating vault \"" + vaultName + "\" ...";
         System.out.println(msg);
 
         try {
-            client.deleteArchive(new DeleteArchiveRequest().withVaultName(vaultName).withArchiveId(archiveId));
-            System.out.println("Deleted archive: " + archiveId);
+            client.createVault(new CreateVaultRequest(vaultName));
+            System.out.println("Created vault: \"" + vaultName+ "\"");
+        } catch (Exception e) {
+            throw new RuntimeException("Error " + msg, e);
+        }
+    }
+
+    public void deleteVault (String vaultName) {
+        String msg = "Deleting vault " + vaultName;
+        System.out.println(msg);
+
+        try {
+            client.deleteVault (new DeleteVaultRequest(vaultName));
+            System.out.println("Deleted vault: " + vaultName);
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
         }
@@ -319,13 +355,17 @@ public class Glacier {
         }
     }
 
-    public void deleteVault (String vaultName) {
-        String msg = "Deleting vault " + vaultName;
-        System.out.println(msg);
+    public void info (String vaultName) {
+        String msg = "Info " + vaultName +"...";
+        System.out.println (msg);
 
         try {
-            client.deleteVault (new DeleteVaultRequest(vaultName));
-            System.out.println("Deleted vault: " + vaultName);
+            DescribeVaultResult vaultdescribe = client.describeVault (new DescribeVaultRequest (vaultName));
+            System.out.println ("Vault : " + vaultName
+                            + "\n\tCreation date : " + vaultdescribe.getCreationDate ()
+                            + "\n\tNumber of archives : " + vaultdescribe.getNumberOfArchives ()
+                            + "\n\tVault size : " + vaultdescribe.getSizeInBytes ()
+                            + "\n\tLast inventory date : " + vaultdescribe.getLastInventoryDate ());
         } catch (Exception e) {
             throw new RuntimeException("Error " + msg, e);
         }
@@ -353,36 +393,9 @@ public class Glacier {
         }
     }
 
-    public void createVault(String vaultName) {
-        String msg = "Creating vault \"" + vaultName + "\" ...";
-        System.out.println(msg);
-
-        try {
-            client.createVault(new CreateVaultRequest(vaultName));
-            System.out.println("Created vault: \"" + vaultName+ "\"");
-        } catch (Exception e) {
-            throw new RuntimeException("Error " + msg, e);
-        }
-    }
-
-    public void info (String vaultName) {
-        String msg = "Info " + vaultName +"...";
-        System.out.println (msg);
-
-        try {
-            DescribeVaultResult vaultdescribe = client.describeVault (new DescribeVaultRequest (vaultName));
-            System.out.println ("Vault : " + vaultName
-                            + "\n\tCreation date : " + vaultdescribe.getCreationDate ()
-                            + "\n\tNumber of archives : " + vaultdescribe.getNumberOfArchives ()
-                            + "\n\tVault size : " + vaultdescribe.getSizeInBytes ()
-                            + "\n\tLast inventory date : " + vaultdescribe.getLastInventoryDate ());
-
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error " + msg, e);
-        }
-    }
-
+    // ==============
+    // Helper methods
+    // ==============
 
     private QueueConfig setupSQS(String sqsQueueName) {
         QueueConfig config = new QueueConfig();

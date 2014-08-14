@@ -9,14 +9,17 @@ import java.util.Map;
  */
 public enum GlacierCliCommand {
 
-    INVENTORY("inventory"),
+    // Archive commands
     UPLOAD("upload"),
-    DOWNLOAD("download"),
     DELETE("delete"),
-    LIST("list"),
-    INFO("info"),
+    DOWNLOAD("download"),
+
+    // Vault commands
+    CREATE_VAULT("create-vault"),
     DELETE_VAULT("delete-vault"),
-    CREATE_VAULT("create-vault");
+    INVENTORY("inventory"),
+    INFO("info"),
+    LIST("list");
 
     private static final Map<String, GlacierCliCommand> lookup
             = new HashMap<String, GlacierCliCommand>();
