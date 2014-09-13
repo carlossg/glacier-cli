@@ -153,7 +153,7 @@ public class Glacier {
 
                 // Vault commands
                 case CREATE_VAULT:
-                    if (arguments.size() != 1) {
+                    if (arguments.size() != 2) {
                         throw new GlacierCliException("The create-vault command requires exactly one parameter.");
                     }
                     glacier.createVault(arguments.get(1));
@@ -204,11 +204,11 @@ public class Glacier {
                             "glacier " + "upload vault_name file1 file2 ... | "
                                        + "delete vault_name archiveId | "
                                        + "download vault_name archiveId output_file | "
-                                       + "create-vault vault_name"
+                                       + "create-vault vault_name | "
                                        + "delete-vault vault_name | "
                                        + "inventory vault_name | "
                                        + "list vault_name | "
-                                       + "info vault_name | ",
+                                       + "info vault_name",
                             null,
                             options,
                             formatter.getLeftPadding(),
